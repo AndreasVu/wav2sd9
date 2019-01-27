@@ -1,20 +1,19 @@
-import os
 import mmap
 import sys
 
 
 def main():
-    if not len(sys.argv) == 2:
-        print('Usage: wav2sd9folder *.wav')
+    if not len(sys.argv) == 3:
+        print('Usage: wav2sd9file *.wav *.sd9')
         exit(1)
 
     global wavFile
-    dir_path = os.path.dirname(os.path.realpath(__file__))
     replacement = sys.argv[1]
+    original = sys.argv[2]
 
-    if not str(replacement).endswith('.wav'):
-        print('Not a .wav file')
-        exit(1)
+    if not original.endswith('.sd9') or not replacement.endswith('.wav'):
+        print('Wrong filetypes')
+        exit(-1)
     else:
         wavFile = open(replacement, 'r+b').read()
         if wavFile[0x24] == 100:
@@ -22,21 +21,14 @@ def main():
             exit(1)
 
     size = chr(wavFile[0x05]).encode(), chr(wavFile[0x06]).encode()
-
-    for root, dirs, files in os.walk(dir_path):
-        for file in files:
-            if not file.endswith('.sd9'):
-                continue
-
-            filepath = os.path.join(root, file)
-            print(filepath)
-            writefile(filepath, wavFile, size)
+    writefile(original, wavFile, size)
+    print('Conversion done.')
 
 
-def writefile(file, replacement, size):
+def writefile(original, replacement, size):
     filesize = len(replacement) + 32
 
-    with open(file, 'r+b') as f:
+    with open(original, 'r+b') as f:
         mm = mmap.mmap(f.fileno(), 0)
         mm.resize(filesize)
         mm.seek(0x09)
