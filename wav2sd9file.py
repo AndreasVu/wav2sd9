@@ -7,7 +7,7 @@ def main():
         print('Usage: wav2sd9file *.wav *.sd9')
         exit(1)
 
-    global wavFile
+    global wavFile, wavmap
     replacement = sys.argv[1]
     original = sys.argv[2]
 
@@ -15,13 +15,15 @@ def main():
         print('Wrong filetypes')
         exit(-1)
     else:
-        wavFile = open(replacement, 'r+b').read()
-        if wavFile[0x24] == 100:
+        wavFile = open(replacement, 'r+b')
+        wavmap = mmap.mmap(wavFile.fileno(), 0)
+        if wavmap[0x24] == 100:
             print('The wav file must be encoded with Microsoft ADPCM')
             exit(1)
 
-    size = chr(wavFile[0x05]).encode(), chr(wavFile[0x06]).encode()
-    writefile(original, wavFile, size)
+    wavmap.seek(0x5)
+    size = wavmap.read(1), wavmap.read(1)
+    writefile(original, wavmap, size)
     print('Conversion done.')
 
 
