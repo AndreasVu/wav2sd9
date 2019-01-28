@@ -8,7 +8,7 @@ def main():
         print('Usage: wav2sd9folder *.wav')
         exit(1)
 
-    global wavFile
+    global wavfile, wavmap
     dir_path = os.path.dirname(os.path.realpath(__file__))
     replacement = sys.argv[1]
 
@@ -16,12 +16,14 @@ def main():
         print('Not a .wav file')
         exit(1)
     else:
-        wavFile = open(replacement, 'r+b').read()
-        if wavFile[0x24] == 100:
+        wavfile = open(replacement, 'r+b')
+        wavmap = mmap.mmap(wavfile.fileno(), 0)
+        if wavmap[0x24] == 100:
             print('The wav file must be encoded with Microsoft ADPCM')
             exit(1)
 
-    size = chr(wavFile[0x05]).encode(), chr(wavFile[0x06]).encode()
+    wavmap.seek(0x5)
+    size = wavmap.read(1), wavmap.read(1)
 
     for root, dirs, files in os.walk(dir_path):
         for file in files:
@@ -30,7 +32,7 @@ def main():
 
             filepath = os.path.join(root, file)
             print(filepath)
-            writefile(filepath, wavFile, size)
+            writefile(filepath, wavmap, size)
 
 
 def writefile(file, replacement, size):
