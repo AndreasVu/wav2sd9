@@ -19,7 +19,7 @@ def main():
         wavfile = open(replacement, 'r+b')
         wavmap = mmap.mmap(wavfile.fileno(), 0)
         if wavmap[0x24] == 100:
-            print('The wav file must be encoded with Microsoft ADPCM')
+            print('The wav file must be exported with Microsoft ADPCM')
             exit(1)
 
     wavmap.seek(0x5)
